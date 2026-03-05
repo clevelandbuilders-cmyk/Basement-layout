@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Basement Remodel Blueprint</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+
+- { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+background: #0a1628;
+color: #a8d4f5;
+font-family: ‘Share Tech Mono’, monospace;
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+align-items: center;
+}
+
+header {
+width: 100%;
+background: #061020;
+border-bottom: 1px solid #1e4a7a;
+padding: 10px 20px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+flex-wrap: wrap;
+gap: 10px;
+}
+
+.title-block {
+display: flex; flex-direction: column;
+}
+.title-block .main-title {
+font-family: ‘Rajdhani’, sans-serif;
+font-size: 22px;
+font-weight: 700;
+color: #e8f4ff;
+letter-spacing: 2px;
+text-transform: uppercase;
+}
+.title-block .sub {
+font-size: 10px;
+color: #4a8ab5;
+letter-spacing: 1px;
+}
+
+.toolbar {
+display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+}
+
+.tool-group {
+display: flex; flex-direction: column; gap: 4px;
+}
+.tool-group-label {
+font-size: 9px; color: #4a8ab5; letter-spacing: 1px; text-transform: uppercase;
+}
+.tool-btns {
+display: flex; gap: 4px; flex-wrap: wrap;
+}
+
+.tool-btn {
+background: #0d2240;
+border: 1px solid #1e4a7a;
+color: #a8d4f5;
+padding: 5px 10px;
+font-size: 11px;
+font-family: ‘Share Tech Mono’, monospace;
+cursor: pointer;
+border-radius: 2px;
+transition: all 0.15s;
+white-space: nowrap;
+}
+.tool-btn:hover, .tool-btn.active {
+background: #1a4a7a;
+border-color: #4a9fd4;
+color: #e8f4ff;
+}
+.tool-btn.active {
+box-shadow: 0 0 8px rgba(74,159,212,0.4);
+}
+.tool-btn.danger { border-color: #7a2020; color: #f5a8a8; }
+.tool-btn.danger:hover { background: #3d1010; border-color: #c44; }
+.tool-btn.success { border-color: #1a7a3a; color: #a8f5c0; }
+.tool-btn.success:hover { background: #0d3a1e; border-color: #4af580; }
+
+.canvas-wrap {
+position: relative;
+overflow: auto;
+flex: 1;
+width: 100%;
+padding: 20px;
+cursor: default;
+}
+
+#blueprint-canvas {
+position: relative;
+background: #041018;
+background-image:
+linear-gradient(rgba(30,74,122,0.15) 1px, transparent 1px),
+linear-gradient(90deg, rgba(30,74,122,0.15) 1px, transparent 1px);
+background-size: 20px 20px;
+border: 2px solid #1e4a7a;
+box-shadow: 0 0 40px rgba(30,74,122,0.3), inset 0 0 60px rgba(4,16,24,0.8);
+display: block;
+margin: 0 auto;
+}
+
+#blueprint-canvas svg {
+display: block;
+}
+
+/* SVG styles */
+.wall { fill: #1e4a7a; stroke: #4a9fd4; stroke-width: 1.5; }
+.wall-exterior { fill: #0d2a4a; stroke: #6ab8e8; stroke-width: 2; }
+.room-label { fill: #7ac8f0; font-family: ‘Share Tech Mono’, monospace; font-size: 11px; text-anchor: middle; }
+.room-label-small { fill: #5aabda; font-family: ‘Share Tech Mono’, monospace; font-size: 9px; text-anchor: middle; }
+.dim-line { stroke: #2a6a9a; stroke-width: 1; marker-start: url(#arrowStart); marker-end: url(#arrowEnd); }
+.dim-text { fill: #f0c060; font-family: ‘Share Tech Mono’, monospace; font-size: 9px; text-anchor: middle; }
+.door-arc { fill: none; stroke: #4a9fd4; stroke-width: 1; stroke-dasharray: 3,2; }
+.door-line { stroke: #4a9fd4; stroke-width: 1.5; }
+.beam { fill: #3a2a0a; stroke: #c0902a; stroke-width: 2; }
+.beam-label { fill: #c0902a; font-family: ‘Share Tech Mono’, monospace; font-size: 9px; text-anchor: middle; font-weight: bold; }
+.soffit { fill: #0a2a1a; stroke: #2a8a4a; stroke-width: 1.5; stroke-dasharray: 6,3; }
+.soffit-label { fill: #2a8a4a; font-family: ‘Share Tech Mono’, monospace; font-size: 8px; text-anchor: middle; }
+.fixture { fill: #0d2240; stroke: #4a9fd4; stroke-width: 1.2; }
+.fixture-label { fill: #7ac8f0; font-family: ‘Share Tech Mono’, monospace; font-size: 8px; text-anchor: middle; }
+.note { fill: #7ac8f0; font-family: ‘Share Tech Mono’, monospace; font-size: 8.5px; }
+.panel-box { fill: #1a0a2a; stroke: #9a4acd; stroke-width: 1.5; }
+
+/* Electrical elements */
+.elec-outlet { fill: #ff9020; stroke: #ffb060; stroke-width: 1.5; cursor: grab; }
+.elec-switch { fill: #20c040; stroke: #60e080; stroke-width: 1.5; cursor: grab; }
+.elec-light { fill: #ffe040; stroke: #fff080; stroke-width: 1.5; cursor: grab; }
+.elec-panel { fill: #9a4acd; stroke: #c080ff; stroke-width: 1.5; cursor: grab; }
+.elec-gfci { fill: #ff4040; stroke: #ff8080; stroke-width: 1.5; cursor: grab; }
+.elec-fan { fill: #40c0ff; stroke: #80e0ff; stroke-width: 1.5; cursor: grab; }
+.elec-label { font-family: ‘Share Tech Mono’, monospace; font-size: 7px; text-anchor: middle; fill: #e8f4ff; pointer-events: none; }
+.elec-element:hover { filter: brightness(1.3) drop-shadow(0 0 4px currentColor); }
+.elec-element.selected { filter: brightness(1.5) drop-shadow(0 0 6px #fff); }
+
+.legend {
+background: #061020;
+border-top: 1px solid #1e4a7a;
+padding: 10px 20px;
+display: flex;
+gap: 20px;
+flex-wrap: wrap;
+align-items: center;
+width: 100%;
+font-size: 10px;
+}
+.legend-title { color: #4a8ab5; letter-spacing: 1px; text-transform: uppercase; margin-right: 8px; }
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid; flex-shrink: 0; }
+
+#status-bar {
+background: #040c18;
+border-top: 1px solid #1e4a7a;
+padding: 4px 20px;
+font-size: 10px;
+color: #4a8ab5;
+width: 100%;
+display: flex; gap: 20px;
+}
+
+#note-input {
+position: fixed;
+background: #0d2240;
+border: 1px solid #4a9fd4;
+padding: 8px;
+border-radius: 4px;
+z-index: 1000;
+display: none;
+gap: 6px;
+flex-direction: column;
+box-shadow: 0 0 20px rgba(30,74,122,0.6);
+}
+#note-input input {
+background: #061020;
+border: 1px solid #1e4a7a;
+color: #e8f4ff;
+padding: 4px 8px;
+font-family: ‘Share Tech Mono’, monospace;
+font-size: 11px;
+outline: none;
+width: 200px;
+}
+#note-input input:focus { border-color: #4a9fd4; }
+.note-btns { display: flex; gap: 6px; }
+</style>
+
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <div class="main-title">Basement Remodel — Floor Plan</div>
+    <div class="sub">SCALE: 1px = 1" &nbsp;|&nbsp; DRAWN: 2026 &nbsp;|&nbsp; REV: A &nbsp;|&nbsp; NOT FOR PERMIT USE WITHOUT ENGINEER STAMP</div>
+  </div>
+  <div class="toolbar">
+    <div class="tool-group">
+      <div class="tool-group-label">Electrical — Click to Place</div>
+      <div class="tool-btns">
+        <button class="tool-btn" onclick="setTool('outlet')" id="btn-outlet">⬡ Outlet</button>
+        <button class="tool-btn" onclick="setTool('gfci')" id="btn-gfci">⬡ GFCI</button>
+        <button class="tool-btn" onclick="setTool('switch')" id="btn-switch">▭ Switch</button>
+        <button class="tool-btn" onclick="setTool('light')" id="btn-light">✦ Light</button>
+        <button class="tool-btn" onclick="setTool('fan')" id="btn-fan">⊕ Fan/Light</button>
+      </div>
+    </div>
+    <div class="tool-group">
+      <div class="tool-group-label">Actions</div>
+      <div class="tool-btns">
+        <button class="tool-btn" onclick="setTool('note')" id="btn-note">✎ Add Note</button>
+        <button class="tool-btn danger" onclick="setTool('delete')" id="btn-delete">✕ Delete</button>
+        <button class="tool-btn" onclick="setTool('select')" id="btn-select">↖ Select</button>
+        <button class="tool-btn success" onclick="printBlueprint()">⎙ Print / Save</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="canvas-wrap" id="canvasWrap">
+  <div id="blueprint-canvas">
+    <svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+</div>
+
+<div class="legend">
+  <span class="legend-title">Legend:</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#ff9020;border-color:#ffb060"></span> Outlet</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#ff4040;border-color:#ff8080"></span> GFCI Outlet</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#20c040;border-color:#60e080"></span> Switch</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#ffe040;border-color:#fff080"></span> Light Fixture</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#40c0ff;border-color:#80e0ff"></span> Fan/Light</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#9a4acd;border-color:#c080ff"></span> Elec. Panel</span>
+  <span style="color:#c0902a;font-size:10px;">— — Steel Beam</span>
+  <span style="color:#2a8a4a;font-size:10px;">- - - Soffit</span>
+  <span style="color:#f0c060;font-size:10px;">⟵ Dimension</span>
+</div>
+
+<div id="status-bar">
+  <span id="status-tool">TOOL: SELECT</span>
+  <span id="status-pos">POS: —</span>
+  <span id="status-count">ELECTRICAL ELEMENTS: 0</span>
+  <span style="color:#2a6a4a;">TIP: Place electrical elements, drag to reposition, right-click to delete</span>
+</div>
+
+<div id="note-input">
+  <input type="text" id="note-text" placeholder="Enter note..." />
+  <div class="note-btns">
+    <button class="tool-btn success" onclick="confirmNote()">Add</button>
+    <button class="tool-btn danger" onclick="cancelNote()">Cancel</button>
+  </div>
+</div>
+
+<script>
+// ─── SCALE & LAYOUT ───────────────────────────────────────────────────────────
+// From sketch: basement roughly 322" wide x ~220" tall (approximate total)
+// We'll use 1px = 1" and scale the SVG accordingly
+// Top section (bath+sauna area): ~126" wide, ~180" tall
+// Right section (living area): ~151.5" wide
+// Bottom section: full width ~322" wide, ~96" tall + utility strip
+
+const S = 1.5; // scale factor: pixels per inch
+function px(inches) { return inches * S; }
+
+const TOTAL_W = px(332);
+const TOTAL_H = px(310);
+
+const svg = document.getElementById('svg');
+svg.setAttribute('width', TOTAL_W);
+svg.setAttribute('height', TOTAL_H);
+svg.setAttribute('viewBox', `0 0 ${TOTAL_W} ${TOTAL_H}`);
+
+const blueprintCanvas = document.getElementById('blueprint-canvas');
+blueprintCanvas.style.width = TOTAL_W + 'px';
+blueprintCanvas.style.height = TOTAL_H + 'px';
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function el(tag, attrs, parent) {
+  const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const [k,v] of Object.entries(attrs||{})) e.setAttribute(k,v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function rect(x,y,w,h,cls,parent,extra) {
+  return el('rect', {x,y,width:w,height:h,class:cls,...(extra||{})}, parent);
+}
+function text(x,y,str,cls,parent,extra) {
+  const t = el('text', {x,y,class:cls,...(extra||{})}, parent);
+  t.textContent = str;
+  return t;
+}
+function line(x1,y1,x2,y2,cls,parent,extra) {
+  return el('line', {x1,y1,x2,y2,class:cls,...(extra||{})}, parent);
+}
+function dimH(x1,x2,y,label,parent) { // horizontal dimension
+  const g = el('g',{},parent);
+  line(x1,y,x2,y,'dim-line',g);
+  line(x1,y-4,x1,y+4,'dim-line',g,{'stroke-width':1,'marker-start':'','marker-end':''});
+  line(x2,y-4,x2,y+4,'dim-line',g,{'stroke-width':1,'marker-start':'','marker-end':''});
+  text((x1+x2)/2,y-4,label,'dim-text',g);
+}
+function dimV(x,y1,y2,label,parent) { // vertical dimension
+  const g = el('g',{},parent);
+  line(x,y1,x,y2,'dim-line',g);
+  line(x-4,y1,x+4,y1,'dim-line',g,{'stroke-width':1,'marker-start':'','marker-end':''});
+  line(x-4,y2,x+4,y2,'dim-line',g,{'stroke-width':1,'marker-start':'','marker-end':''});
+  const t = el('text',{x:x-8,y:(y1+y2)/2,'class':'dim-text','text-anchor':'end',transform:`rotate(-90,${x-8},${(y1+y2)/2})`},g);
+  t.textContent = label;
+}
+function door(cx,cy,r,startAngle,cls,parent) {
+  // Door: line + arc
+  const g = el('g',{},parent);
+  const rad = startAngle * Math.PI/180;
+  const ex = cx + r * Math.cos(rad);
+  const ey = cy + r * Math.sin(rad);
+  line(cx,cy,ex,ey,'door-line',g);
+  const sweep = startAngle < 0 ? 0 : 1;
+  el('path',{d:`M ${cx} ${cy} L ${cx+r} ${cy} A ${r} ${r} 0 0 ${sweep} ${ex} ${ey}`,class:'door-arc'},g);
+  return g;
+}
+
+// ─── DEFS (arrowheads) ───────────────────────────────────────────────────────
+const defs = el('defs',{},svg);
+function makeArrow(id, refX) {
+  const m = el('marker',{id,markerWidth:6,markerHeight:6,refX,refY:3,orient:'auto'},defs);
+  el('path',{d:'M0,0 L0,6 L6,3 Z',fill:'#2a6a9a'},m);
+}
+makeArrow('arrowEnd',6);
+makeArrow('arrowStart',0);
+
+// ─── LAYERS ──────────────────────────────────────────────────────────────────
+const layerFloor   = el('g',{id:'layer-floor'},svg);
+const layerWalls   = el('g',{id:'layer-walls'},svg);
+const layerDoors   = el('g',{id:'layer-doors'},svg);
+const layerSpecial = el('g',{id:'layer-special'},svg);
+const layerDims    = el('g',{id:'layer-dims'},svg);
+const layerLabels  = el('g',{id:'layer-labels'},svg);
+const layerElec    = el('g',{id:'layer-elec'},svg);
+
+// ─── COORDINATES (inches, then scaled) ───────────────────────────────────────
+// Origin top-left of interior
+// Outer walls: full plan ~322" W, ~300" H
+const OX = px(10); // offset from SVG edge
+const OY = px(10);
+const W = px(322);
+const H = px(296);
+
+// Key X coordinates (inches from left)
+const x0   = OX;           // left exterior wall
+const xS   = OX+px(38);    // right of stair area (~38")
+const xB   = OX+px(126);   // right of bath/sauna section (126")
+const xM   = OX+px(126+15.5); // built-ins wall ~15.5" right of bath wall
+const xR   = OX+W;         // right exterior wall
+
+// Key Y coordinates (inches from top)
+const y0   = OY;           // top exterior wall
+const yMid = OY+px(180);   // steel beam / mid divider
+const ySub = OY+px(180+49.5+24); // lower sub-area
+const yBot = OY+H;         // bottom exterior wall
+
+// Utility soffit top zone
+const ySoffit = y0;
+const ySoffitH = px(20); // soffit depth visual
+
+// ─── DRAW FLOOR ──────────────────────────────────────────────────────────────
+// Main floor area background
+rect(x0,y0,W,H,'',layerFloor,{fill:'#040e1a'});
+
+// Stair area (left strip, full height)
+rect(x0,y0,px(38),H,'',layerFloor,{fill:'#030b14',stroke:'#1e4a7a','stroke-width':1});
+
+// ─── EXTERIOR WALLS ──────────────────────────────────────────────────────────
+const WW = px(6); // wall width
+// Top wall
+rect(x0,y0,W,WW,'wall-exterior',layerWalls);
+// Bottom wall
+rect(x0,yBot-WW,W,WW,'wall-exterior',layerWalls);
+// Left wall
+rect(x0,y0,WW,H,'wall-exterior',layerWalls);
+// Right wall
+rect(xR-WW,y0,WW,H,'wall-exterior',layerWalls);
+
+// ─── INTERIOR WALLS ──────────────────────────────────────────────────────────
+const IW = px(4); // interior wall thickness
+
+// Stair divider wall (vertical, x=38")
+rect(xS,y0,IW,px(180),'wall',layerWalls);
+
+// Bath/Sauna divider wall (vertical, x=126")
+rect(xB,y0,IW,px(180),'wall',layerWalls);
+
+// Horizontal wall separating top (bath/living) from bottom (utility/bedroom area)
+// This wall runs full width at y~180", with door opening 29" from left = 29"+stair(38") = 67"
+// Door is 32" wide
+const doorX1 = x0+px(38+29);
+const doorX2 = doorX1+px(32);
+// Wall left segment
+rect(x0,yMid,doorX1-x0,IW,'wall',layerWalls);
+// Wall right segment
+rect(doorX2,yMid,xR-doorX2,IW,'wall',layerWalls);
+
+// Built-ins partition (vertical wall at x=126+15.5=141.5")
+rect(xM,y0,IW,px(180),'wall',layerWalls);
+
+// Lower area: closet wall horizontal at y=180+49.5" = 229.5"
+const yCloset = yMid+px(49.5);
+// Closet door opening: starts at 41" from left of lower section, 62" wide
+const cDoorX1 = x0+px(41);
+const cDoorX2 = cDoorX1+px(62);
+// Closet wall: left of door, then right of door
+rect(x0,yCloset,cDoorX1-x0,IW,'wall',layerWalls);
+rect(cDoorX2,yCloset,xR-cDoorX2,IW,'wall',layerWalls);
+
+// Closet right wall vertical (from closet wall down to floor)
+const xClosetR = x0+px(41+62+116.5);
+rect(xClosetR,yCloset,IW,yBot-yCloset-WW,'wall',layerWalls);
+
+// Bedroom right wall vertical: x = 322-96" = 226" from left
+const xBedR = xR-px(96);
+rect(xBedR,yCloset,IW,yBot-yCloset-WW,'wall',layerWalls);
+
+// Utility / mechanical area: left section bottom, chimney + furnace area
+// Vertical wall separating mechanical from bedroom at x~41" from left
+const xMechR = x0+px(41);
+rect(xMechR,yCloset+IW,IW,yBot-yCloset-IW-WW,'wall',layerWalls);
+
+// ─── STEEL BEAM ──────────────────────────────────────────────────────────────
+// Steel beam runs horizontally at yMid, full width
+rect(x0+WW,yMid-px(4),W-WW*2,px(8),'beam',layerSpecial);
+text(OX+W/2,yMid+px(0.5),'── STEEL BEAM SUPPORT ──','beam-label',layerLabels);
+
+// ─── UTILITY SOFFIT ──────────────────────────────────────────────────────────
+// Top of plan, from x=126" to right wall, 12" deep 8" tall
+const xSoffitStart = xB+IW;
+rect(xSoffitStart,y0+WW,xR-xSoffitStart-WW,px(20),'soffit',layerSpecial);
+text(xSoffitStart+(xR-xSoffitStart-WW)/2,y0+WW+px(10),'UTILITY SOFFIT — 12" DEEP × 8" TALL','soffit-label',layerLabels);
+
+// ─── ELECTRICAL PANEL ────────────────────────────────────────────────────────
+// Top right corner, ~40" from right wall
+rect(xR-WW-px(24),y0+WW,px(20),px(16),'panel-box',layerSpecial);
+text(xR-WW-px(14),y0+WW+px(8),'PANEL','',layerLabels,{fill:'#9a4acd','font-size':'7px','text-anchor':'middle','font-family':'Share Tech Mono, monospace'});
+
+// ─── DOORS ───────────────────────────────────────────────────────────────────
+// Mid horizontal wall door (32" wide, swing into upper area)
+const dMidX = doorX1;
+const dMidY = yMid;
+// Draw door opening gap (already done by wall split)
+// Door leaf: 32" horizontal, swing arc upward
+line(dMidX,dMidY,dMidX,dMidY-px(32),'door-line',layerDoors);
+el('path',{d:`M ${dMidX} ${dMidY} A ${px(32)} ${px(32)} 0 0 1 ${dMidX+px(32)} ${dMidY}`,class:'door-arc'},layerDoors);
+
+// Closet door (62" = double door?, two 31" panels)
+const cdX = cDoorX1;
+const cdY = yCloset;
+// Left panel swings down
+line(cdX,cdY,cdX,cdY+px(31),'door-line',layerDoors);
+el('path',{d:`M ${cdX} ${cdY} A ${px(31)} ${px(31)} 0 0 0 ${cdX+px(31)} ${cdY}`,class:'door-arc'},layerDoors);
+// Right panel
+line(cdX+px(31),cdY,cdX+px(31),cdY+px(31),'door-line',layerDoors);
+el('path',{d:`M ${cdX+px(31)} ${cdY} A ${px(31)} ${px(31)} 0 0 1 ${cdX+px(62)} ${cdY}`,class:'door-arc'},layerDoors);
+
+// Bedroom door (32" wide at right ~33.75" from right wall)
+const bdX = xClosetR+IW+px(10);
+const bdY = yCloset;
+line(bdX,bdY,bdX+px(32),bdY,'door-line',layerDoors);
+
+// ─── SAUNA/GLASS PARTITION DOORS ─────────────────────────────────────────────
+// Two small doors in bath area around x=100-120", y=130-150" (approx)
+const saunaX = xS+px(55);
+const saunaY = y0+px(120);
+// Glass partition door
+line(saunaX,saunaY,saunaX,saunaY+px(30),'door-line',layerDoors,{stroke:'#4ab8d4','stroke-dasharray':'3,2'});
+text(saunaX+px(5),saunaY+px(15),'Glass','room-label-small',layerLabels,{'text-anchor':'start'});
+
+// ─── ROOM LABELS ─────────────────────────────────────────────────────────────
+// BATHROOM (top left section, x=38–126", y=0–180")
+const bathCX = xS+IW+(xB-xS-IW)/2;
+const bathCY = y0+WW+px(40);
+text(bathCX, bathCY,'BATHROOM','room-label',layerLabels);
+text(bathCX, bathCY+px(14),'/ SPA','room-label',layerLabels);
+
+// Toilet
+rect(xS+IW+px(5),y0+WW+px(8),px(18),px(22),'fixture',layerSpecial);
+text(xS+IW+px(14),y0+WW+px(20),'WC','fixture-label',layerLabels);
+
+// Sink
+rect(xS+IW+px(5),y0+WW+px(40),px(18),px(16),'fixture',layerSpecial);
+text(xS+IW+px(14),y0+WW+px(49),'SINK','fixture-label',layerLabels);
+
+// Steam Shower (top right of bath area)
+rect(xS+IW+px(55),y0+WW,px(60),px(70),'',layerSpecial,{fill:'#071828',stroke:'#2a9ab8','stroke-width':1});
+text(xS+IW+px(85),y0+WW+px(30),'STEAM','room-label-small',layerLabels);
+text(xS+IW+px(85),y0+WW+px(42),'SHOWER','room-label-small',layerLabels);
+
+// Sauna
+rect(xS+IW+px(5),y0+WW+px(80),px(50),px(75),'',layerSpecial,{fill:'#1a0c00',stroke:'#8a5020','stroke-width':1});
+text(xS+IW+px(30),y0+WW+px(120),'SAUNA','room-label-small',layerLabels,{fill:'#c07040'});
+
+// LIVING / MEDIA AREA (top right section)
+const livCX = xM+IW+(xR-xM-IW-WW)/2;
+const livCY = y0+WW+px(50);
+text(livCX,livCY,'LIVING /','room-label',layerLabels);
+text(livCX,livCY+px(14),'MEDIA ROOM','room-label',layerLabels);
+
+// Couch (approx)
+rect(xR-WW-px(120),y0+WW+px(10),px(100),px(30),'fixture',layerSpecial,{fill:'#0a1e0a',stroke:'#2a6a2a'});
+text(xR-WW-px(70),y0+WW+px(27),'COUCH','fixture-label',layerLabels);
+// TV / Built-ins wall note
+text(xM+IW+px(8),y0+WW+px(90),'BUILT-INS','room-label-small',layerLabels,{'text-anchor':'start'});
+text(xM+IW+px(8),y0+WW+px(102),'ALONG WALL','room-label-small',layerLabels,{'text-anchor':'start'});
+text(xM+IW+px(8),y0+WW+px(114),'(TV)','room-label-small',layerLabels,{'text-anchor':'start'});
+
+// STAIRS (left strip)
+text(x0+WW+px(10),y0+H/2,'STAIRS','room-label-small',layerLabels,{transform:`rotate(-90,${x0+WW+px(10)},${y0+H/2})`});
+// Stair lines
+for (let i=0; i<10; i++) {
+  line(x0+WW,y0+WW+px(i*16),xS,y0+WW+px(i*16),'',layerSpecial,{stroke:'#1e4a7a','stroke-width':1});
+}
+
+// UTILITY / MECHANICAL (bottom left, x=0–41", y=229.5–296")
+text(x0+WW+px(5),yCloset+IW+px(30),'UTILITY','room-label-small',layerLabels,{'text-anchor':'start'});
+// Hot water heater
+rect(x0+WW+px(5),yCloset+IW+px(10),px(22),px(22),'fixture',layerSpecial,{fill:'#0a1a2a',stroke:'#2a6a9a'});
+text(x0+WW+px(16),yCloset+IW+px(22),'HWH','fixture-label',layerLabels);
+// Furnace
+rect(x0+WW+px(3),yCloset+IW+px(50),px(28),px(28),'fixture',layerSpecial,{fill:'#1a0a00',stroke:'#6a3a00'});
+text(x0+WW+px(17),yCloset+IW+px(65),'FURN','fixture-label',layerLabels,{fill:'#c07040'});
+// Chimney
+rect(x0+WW+px(3),yBot-WW-px(35),px(22),px(28),'fixture',layerSpecial,{fill:'#1a1010',stroke:'#5a3a3a'});
+text(x0+WW+px(14),yBot-WW-px(19),'CHIM','fixture-label',layerLabels,{fill:'#a07060'});
+
+// CLOSET label
+text(x0+px(41+62/2),yCloset-px(8),'CLOSET','room-label-small',layerLabels,{fill:'#5a9ab5'});
+
+// Lower bedroom area
+text(x0+px(41+62+116.5/2),yCloset+IW+px(40),'OPEN AREA','room-label',layerLabels);
+text(x0+px(41+62+116.5/2),yCloset+IW+px(56),'/  BEDROOM','room-label',layerLabels);
+
+// OPEN BENEATH SUPPORT BEAM
+text(x0+px(200),yMid+px(25),'OPEN BENEATH','room-label-small',layerLabels,{fill:'#4a8060'});
+text(x0+px(200),yMid+px(37),'SUPPORT BEAM','room-label-small',layerLabels,{fill:'#4a8060'});
+
+// ─── DIMENSIONS ──────────────────────────────────────────────────────────────
+const DY = yBot+px(12);
+const DX2 = xR+px(12);
+
+// Overall width
+dimH(x0,xR,yBot+px(10),'322"',layerDims);
+// Overall height
+dimV(xR+px(8),y0,yBot,'296"',layerDims);
+
+// Bath section width
+dimH(xS,xB,y0-px(10),'126"',layerDims);
+// Built-ins width
+dimH(xB,xM,y0-px(10),'15½"',layerDims);
+// Living section width
+dimH(xM,xR,y0-px(10),'  →',layerDims);
+
+// Stair width
+dimH(x0,xS,yBot+px(20),'38"',layerDims);
+
+// Mid wall door position
+dimH(x0+WW,doorX1,yMid+px(16),'29"',layerDims);
+dimH(doorX1,doorX2,yMid+px(16),'32"',layerDims);
+
+// Closet dimensions
+dimH(x0+WW,cDoorX1,yCloset+px(16),'41"',layerDims);
+dimH(cDoorX1,cDoorX2,yCloset+px(16),'62"',layerDims);
+dimH(cDoorX2,xClosetR,yCloset+IW+px(8),'116½"',layerDims);
+dimH(xClosetR,xR-WW,yCloset+IW+px(8),'33¾"',layerDims);
+
+// Bottom room widths
+dimH(x0+WW,xMechR,yBot+px(20),'41"',layerDims);
+dimH(xMechR+IW,xBedR,yBot+px(20),'161¾"',layerDims);
+dimH(xBedR+IW,xR-WW,yBot+px(20),'96"',layerDims);
+
+// Vertical: upper section
+dimV(xB-px(12),y0+WW,yMid,'~180"',layerDims);
+// Lower closet vertical
+dimV(xMechR+IW+px(4),yMid+IW,yCloset,'49½"',layerDims);
+dimV(xMechR+IW+px(4),yCloset+IW,yBot-WW,'~96"',layerDims);
+
+// Soffit depth note
+dimH(xR-px(40+WW),xR-WW,y0+WW+px(5),'40"',layerDims);
+
+// ─── ELECTRICAL TOOL SYSTEM ───────────────────────────────────────────────────
+
+let currentTool = 'select';
+let electricalElements = [];
+let selectedEl = null;
+let dragging = null;
+let dragOffset = {x:0,y:0};
+let pendingNotePos = null;
+
+const ELEC_TYPES = {
+  outlet: { label: 'OUTLET', shape: 'circle', r: 8, cls: 'elec-outlet' },
+  gfci:   { label: 'GFCI',   shape: 'circle', r: 8, cls: 'elec-gfci'   },
+  switch: { label: 'SW',     shape: 'rect',   cls: 'elec-switch'  },
+  light:  { label: 'LIGHT',  shape: 'star',   cls: 'elec-light'   },
+  fan:    { label: 'FAN',    shape: 'cross',  cls: 'elec-fan'     },
+};
+
+function setTool(t) {
+  currentTool = t;
+  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+  const btn = document.getElementById('btn-'+t);
+  if (btn) btn.classList.add('active');
+  document.getElementById('status-tool').textContent = 'TOOL: ' + t.toUpperCase();
+  svg.style.cursor = t === 'select' ? 'default' : t === 'delete' ? 'crosshair' : 'crosshair';
+}
+setTool('select');
+
+function getSVGPoint(e) {
+  const rect = svg.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+function drawElecElement(elData) {
+  const g = el('g', {class:'elec-element', transform:`translate(${elData.x},${elData.y})`}, layerElec);
+  g.dataset.id = elData.id;
+  const type = ELEC_TYPES[elData.type];
+  if (!type) {
+    // note type
+    const t = el('text',{x:0,y:0,fill:'#ffff80','font-family':'Share Tech Mono, monospace','font-size':'9px','font-style':'italic'},g);
+    t.textContent = '✎ ' + elData.label;
+    g.appendChild(t);
+    setupElecInteraction(g, elData);
+    return g;
+  }
+  if (type.shape === 'circle') {
+    el('circle',{cx:0,cy:0,r:type.r,class:type.cls},g);
+    const t = el('text',{x:0,y:type.r+9,class:'elec-label'},g);
+    t.textContent = type.label;
+  } else if (type.shape === 'rect') {
+    el('rect',{x:-8,y:-6,width:16,height:12,class:type.cls},g);
+    const t = el('text',{x:0,y:14,class:'elec-label'},g);
+    t.textContent = type.label;
+  } else if (type.shape === 'star') {
+    el('circle',{cx:0,cy:0,r:9,class:type.cls},g);
+    el('text',{x:0,y:3,class:'elec-label','text-anchor':'middle','dominant-baseline':'middle',fill:'#0a0a00','font-size':'10px'},g).textContent='✦';
+    const t = el('text',{x:0,y:18,class:'elec-label'},g);
+    t.textContent = type.label;
+  } else if (type.shape === 'cross') {
+    el('circle',{cx:0,cy:0,r:9,class:type.cls},g);
+    el('text',{x:0,y:3,class:'elec-label','text-anchor':'middle','dominant-baseline':'middle',fill:'#001a2a','font-size':'12px'},g).textContent='⊕';
+    const t = el('text',{x:0,y:18,class:'elec-label'},g);
+    t.textContent = type.label;
+  }
+  if (elData.note) {
+    const t = el('text',{x:12,y:-8,class:'elec-label','text-anchor':'start',fill:'#ffff80'},g);
+    t.textContent = elData.note;
+  }
+  setupElecInteraction(g, elData);
+  return g;
+}
+
+function setupElecInteraction(g, elData) {
+  g.addEventListener('mousedown', e => {
+    if (currentTool === 'delete') {
+      removeElement(elData.id);
+      e.stopPropagation(); return;
+    }
+    e.stopPropagation();
+    dragging = elData;
+    const pt = getSVGPoint(e);
+    dragOffset = {x: pt.x - elData.x, y: pt.y - elData.y};
+    if (selectedEl) selectedEl.classList.remove('selected');
+    selectedEl = g;
+    g.classList.add('selected');
+  });
+  g.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    removeElement(elData.id);
+  });
+}
+
+function removeElement(id) {
+  electricalElements = electricalElements.filter(e=>e.id!==id);
+  const g = layerElec.querySelector(`[data-id="${id}"]`);
+  if (g) g.remove();
+  updateCount();
+}
+
+svg.addEventListener('click', e => {
+  if (currentTool === 'select' || currentTool === 'delete') return;
+  const pt = getSVGPoint(e);
+  if (currentTool === 'note') {
+    pendingNotePos = pt;
+    const ni = document.getElementById('note-input');
+    ni.style.display = 'flex';
+    ni.style.left = (e.clientX+10)+'px';
+    ni.style.top = (e.clientY-40)+'px';
+    document.getElementById('note-text').value = '';
+    document.getElementById('note-text').focus();
+    return;
+  }
+  addElecElement(currentTool, pt.x, pt.y);
+});
+
+svg.addEventListener('mousemove', e => {
+  const pt = getSVGPoint(e);
+  document.getElementById('status-pos').textContent =
+    `POS: ${Math.round(pt.x/S)}" , ${Math.round(pt.y/S)}"`;
+  if (dragging) {
+    const nx = pt.x - dragOffset.x;
+    const ny = pt.y - dragOffset.y;
+    dragging.x = nx; dragging.y = ny;
+    const g = layerElec.querySelector(`[data-id="${dragging.id}"]`);
+    if (g) g.setAttribute('transform', `translate(${nx},${ny})`);
+  }
+});
+
+document.addEventListener('mouseup', () => { dragging = null; });
+
+let elecIdCounter = 0;
+function addElecElement(type, x, y) {
+  const id = 'e' + (++elecIdCounter);
+  const elData = {id, type, x, y, label: ELEC_TYPES[type]?.label || type};
+  electricalElements.push(elData);
+  drawElecElement(elData);
+  updateCount();
+}
+
+function updateCount() {
+  document.getElementById('status-count').textContent =
+    'ELECTRICAL ELEMENTS: ' + electricalElements.length;
+}
+
+function confirmNote() {
+  const txt = document.getElementById('note-text').value.trim();
+  if (txt && pendingNotePos) {
+    const id = 'n' + (++elecIdCounter);
+    const elData = {id, type:'note', x:pendingNotePos.x, y:pendingNotePos.y, label:txt};
+    electricalElements.push(elData);
+    drawElecElement(elData);
+    updateCount();
+  }
+  document.getElementById('note-input').style.display = 'none';
+  pendingNotePos = null;
+}
+function cancelNote() {
+  document.getElementById('note-input').style.display = 'none';
+  pendingNotePos = null;
+}
+document.getElementById('note-text').addEventListener('keydown', e => {
+  if (e.key==='Enter') confirmNote();
+  if (e.key==='Escape') cancelNote();
+});
+
+function printBlueprint() {
+  window.print();
+}
+
+// ─── PRINT STYLES ─────────────────────────────────────────────────────────────
+const ps = document.createElement('style');
+ps.textContent = `@media print {
+  body { background: #041018 !important; }
+  header, .legend, #status-bar, #note-input { display: none !important; }
+  .canvas-wrap { padding: 0 !important; overflow: visible !important; }
+}`;
+document.head.appendChild(ps);
+</script>
+
+</div>
+</body>
+</html>
